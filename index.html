@@ -12,12 +12,10 @@
     input, select, textarea { width: 100%; padding: 8px; box-sizing: border-box; }
     .inline-group { display: flex; gap: 10px; }
     .inline-group > div { flex: 1; }
-    .dynamic-params { margin-top: 10px; }
     .hidden { display: none; }
-    .product-block { border: 1px dashed #888; padding: 10px; margin-bottom: 10px; position: relative; }
+    .block { border: 1px dashed #888; padding: 10px; margin-bottom: 10px; position: relative; }
     .remove-btn { position: absolute; top: 10px; right: 10px; cursor: pointer; color: red; }
-    .add-btn { margin-bottom: 10px; }
-    .file-upload { margin-top: 5px; }
+    .add-btn { margin: 10px 0; }
   </style>
 </head>
 <body>
@@ -26,22 +24,31 @@
   <!-- 1. Company Information -->
   <div class="form-section">
     <h2>1. Company Information</h2>
-    <label for="companyName">Company Name</label>
-    <input type="text" id="companyName" name="companyName" required />
-    <label for="established">Year Established</label>
-    <input type="number" id="established" name="established" min="1900" max="2025" required />
-    <label for="legalStatus">Legal Status</label>
-    <select id="legalStatus" name="legalStatus">
-      <option value="LLC">LLC</option>
-      <option value="Cooperative">Cooperative</option>
-      <option value="Public">Public</option>
-      <option value="Other">Other</option>
-    </select>
-    <label for="exportManager">Export Manager Email</label>
-    <input type="email" id="exportManager" name="exportManager" required />
+    <label>Company Name</label><input type="text" name="companyName" required />
+    <label>Tax ID</label><input type="text" name="taxId" required />
+    <label>VAT ID</label><input type="text" name="vatId" required />
+    <label>Headquarters Address</label><textarea name="hqAddress" required></textarea>
+    <h3>Additional Sites</h3>
+    <button type="button" class="add-btn" onclick="addSite()">+ Add Site</button>
+    <div id="sitesContainer"></div>
+    <div class="inline-group">
+      <div><label>Phone</label><input type="tel" name="phone" required /></div>
+      <div><label>Fax</label><input type="tel" name="fax" /></div>
+    </div>
+    <label>Website</label><input type="url" name="website" />
+    <h3>Key Contacts</h3>
+    <label>CEO/GM Name</label><input type="text" name="ceoName" required />
+    <label>CEO/GM Email</label><input type="email" name="ceoEmail" required />
+    <label>CEO/GM Phone</label><input type="tel" name="ceoPhone" required />
+    <label>Quality Manager Name</label><input type="text" name="qualityManagerName" required />
+    <label>Quality Manager Email</label><input type="email" name="qualityManagerEmail" required />
+    <label>Quality Manager Phone</label><input type="tel" name="qualityManagerPhone" required />
+    <label>Export Manager Name</label><input type="text" name="exportManagerName" required />
+    <label>Export Manager Email</label><input type="email" name="exportManagerEmail" required />
+    <label>Export Manager Phone</label><input type="tel" name="exportManagerPhone" required />
   </div>
 
-  <!-- 2. Product Details: repeatable -->
+  <!-- 2. Product Details -->
   <div class="form-section">
     <h2>2. Product Details</h2>
     <button type="button" class="add-btn" onclick="addProduct()">+ Add Product</button>
@@ -52,133 +59,100 @@
   <div class="form-section">
     <h2>3. Packaging Options</h2>
     <div class="inline-group">
-      <div>
-        <label for="packageType">Format</label>
-        <select id="packageType" name="packageType">
-          <option value="bulk">Bulk</option>
-          <option value="drum">Drum</option>
-          <option value="retail">Retail</option>
-        </select>
-      </div>
-      <div>
-        <label for="unitSize">Unit Size</label>
-        <input type="text" id="unitSize" name="unitSize" placeholder="e.g. 250g, 1000kg" />
-      </div>
+      <div><label>Format</label><select name="packageType"><option>Bulk</option><option>Drum</option><option>Retail</option></select></div>
+      <div><label>Unit Size</label><input type="text" name="unitSize" /></div>
     </div>
   </div>
 
   <!-- 4. Certifications & Compliance -->
   <div class="form-section">
     <h2>4. Certifications & Compliance</h2>
-    <input type="file" class="file-upload" name="certificates[]" multiple accept=".pdf,.jpg,.png" />
+    <button type="button" class="add-btn" onclick="addCert()">+ Add Certification</button>
+    <div id="certsContainer"></div>
   </div>
 
   <!-- 5. Pricing & Commercial Terms -->
   <div class="form-section">
     <h2>5. Pricing & Commercial Terms</h2>
-    <label for="incoterm">Preferred Incoterm</label>
-    <select id="incoterm" name="incoterm">
-      <option>FOB</option><option>CIF</option><option>EXW</option>
-    </select>
-    <label for="unitPrice">Unit Price (USD/EUR)</label>
-    <input type="number" id="unitPrice" name="unitPrice" step="0.01" />
-    <label for="moq">Minimum Order Quantity</label>
-    <input type="text" id="moq" name="moq" placeholder="e.g. 10 metric tons" />
+    <label>Incoterm</label><select name="incoterm"><option>FOB</option><option>CIF</option><option>EXW</option></select>
+    <label>Unit Price</label><input type="number" name="unitPrice" step="0.01" />
+    <label>MOQ</label><input type="text" name="moq" />
   </div>
 
   <!-- 6. Logistics & Export Readiness -->
   <div class="form-section">
     <h2>6. Logistics & Export Readiness</h2>
-    <label for="portLoading">Preferred Port of Loading</label>
-    <input type="text" id="portLoading" name="portLoading" />
-    <label for="leadTime">Typical Lead Time (days)</label>
-    <input type="number" id="leadTime" name="leadTime" />
+    <label>Port of Loading</label><input type="text" name="portLoading" />
+    <label>Lead Time (days)</label><input type="number" name="leadTime" />
   </div>
 
   <!-- 7. Sustainability & CSR -->
   <div class="form-section">
     <h2>7. Sustainability & CSR</h2>
-    <label for="envPolicy">Environmental Policy</label>
-    <textarea id="envPolicy" name="envPolicy"></textarea>
-    <label for="socialAudit">Social Audit Certifications</label>
-    <input type="text" id="socialAudit" name="socialAudit" />
-    <input type="file" class="file-upload" name="productPhotosGlobal[]" multiple accept="image/*" />
+    <label>Environmental Policy</label><textarea name="envPolicy"></textarea>
+    <label>Social Audits</label><input type="text" name="socialAudit" />
   </div>
 
   <!-- 8. References & Samples -->
   <div class="form-section">
     <h2>8. References & Samples</h2>
-    <label for="keyClients">Key Export Clients (with contact)</label>
-    <textarea id="keyClients" name="keyClients" placeholder="Company, Contact Person, Email/Phone"></textarea>
-    <label for="sampleAvailability">Sample Availability & Cost</label>
-    <input type="text" id="sampleAvailability" name="sampleAvailability" placeholder="Free/Paid, Shipping costs" />
-    <label for="datasheetLink">Digital Datasheet Link</label>
-    <input type="url" id="datasheetLink" name="datasheetLink" placeholder="https://" />
+    <label>Key Clients</label><textarea name="keyClients"></textarea>
+    <label>Sample Availability</label><input type="text" name="sampleAvailability" />
+    <label>Datasheet Link</label><input type="url" name="datasheetLink" />
   </div>
 
   <button type="submit">Submit Profile</button>
 
   <script>
-    const subcategories = {
-      grains: { Wheat: '1001.10', Maize: '1005.90', Rice: '1006.30', Barley: '1003.00' },
-      fruits: { Citrus: '0805.50', Berries: '0810.10', 'Leafy Greens': '0706.10', 'Root Vegetables': '0701.90' },
-      driedFruits: { Raisins: '0806.20', Figs: '0804.20', Almonds: '0802.12', Pistachios: '0802.51' },
-      oils: { 'Sunflower Oil': '1512.11', 'Olive Oil': '1509.10', 'Palm Oil': '1511.10' },
-      cacao: { 'Cocoa Beans': '1801.00', 'Cocoa Liquor': '1803.00', 'Green Coffee': '0901.11', 'Roasted Coffee': '0901.21' },
-      spices: { Pepper: '0904.11', Turmeric: '0910.10', Cinnamon: '0906.10', Cloves: '0907.10' },
-      flowers: { Roses: '0603.11', Lilies: '0603.12', Orchids: '0603.19', Tulips: '0603.13' }
-    };
-    let productCount = 0;
-    function addProduct() {
-      const idx = productCount++;
-      const block = document.createElement('div'); block.className = 'product-block'; block.id = 'product_' + idx;
-      block.innerHTML = `
-        <span class="remove-btn" onclick="removeProduct('${idx}')">✖</span>
-        <label>Category</label>
-        <select name="products[${idx}][category]" onchange="onProductCategoryChange(${idx})" required>
-          <option value="">Select...</option>
-          ${Object.keys(subcategories).map(c=>`<option value="${c}">${c}</option>`).join('')}
-        </select>
-        <label>Subcategory</label>
-        <select name="products[${idx}][subcategory]" id="sub_${idx}" onchange="onSubcategoryChange(${idx})" required>
-          <option value="">Select...</option>
-        </select>
-        <label>Variant (optional)</label>
-        <input type="text" name="products[${idx}][variant]" placeholder="e.g. Winter, Durum, Red" />
-        <label>HS Code</label>
-        <input type="text" name="products[${idx}][hsCode]" id="hs_${idx}" readonly />
-        <div class="dynamic-params hidden" id="params_${idx}"></div>
-        <label>Other Product Name</label>
-        <input type="text" name="products[${idx}][customName]" placeholder="Optional custom name" />
-        <label>Product Photos</label>
-        <input type="file" class="file-upload" name="products[${idx}][photos][]" multiple accept="image/*" />
-      `;
-      document.getElementById('productsContainer').appendChild(block);
+    // Site Repeater
+    let siteCount=0;
+    function addSite(){
+      const idx=siteCount++;
+      const c=document.getElementById('sitesContainer');
+      const b=document.createElement('div');b.className='block';b.innerHTML=`<span class='remove-btn' onclick='this.parentNode.remove()'>✖</span>
+        <label>Site Type</label><input type='text' name='sites[${idx}][type]' required />
+        <label>Address</label><textarea name='sites[${idx}][address]' required></textarea>`;
+      c.appendChild(b);
     }
-    function removeProduct(idx) { document.getElementById('product_' + idx).remove(); }
-    function onProductCategoryChange(idx) {
-      const cat = document.querySelector(`[name='products[${idx}][category]']`).value;
-      const subSel = document.getElementById('sub_' + idx);
-      subSel.innerHTML = `<option value="">Select...</option>` + Object.keys(subcategories[cat]||{}).map(s=>`<option value="${s}">${s}</option>`).join('');
-      document.getElementById('hs_' + idx).value = '';
-      document.getElementById('params_' + idx).classList.add('hidden');
+    
+    // Product Repeater
+    const sub={grains:{Wheat:'1001.10',Maize:'1005.90',Rice:'1006.30',Barley:'1003.00'}};
+    let pCount=0;
+    function addProduct(){
+      const i=pCount++;
+      const c=document.getElementById('productsContainer');
+      const b=document.createElement('div');b.className='block';b.innerHTML=`<span class='remove-btn' onclick='this.parentNode.remove()'>✖</span>
+        <label>Category</label><select onchange='onCat(${i},this.value)' name='products[${i}][cat]'><option>grains</option></select>
+        <label>Subcategory</label><select id='sub${i}' name='products[${i}][sub]'></select>
+        <label>Variant</label><input type='text' name='products[${i}][var]' />
+        <label>HS Code</label><input type='text' id='hs${i}' name='products[${i}][hs]' readonly />
+        <label>Photos</label><input type='file' name='products[${i}][photos][]' multiple accept='image/*' />
+        <div id='par${i}' class='hidden'></div>`;
+      c.appendChild(b);
+      onCat(i,'grains');
     }
-    function onSubcategoryChange(idx) {
-      const cat = document.querySelector(`[name='products[${idx}][category]']`).value;
-      const sub = document.getElementById('sub_' + idx).value;
-      document.getElementById('hs_' + idx).value = subcategories[cat][sub] || '';
-      showParams(idx, cat);
+    function onCat(i,v){
+      const s=document.getElementById('sub'+i),o=sub[v];s.innerHTML=Object.keys(o).map(x=>`<option value='${x}'>${x}</option>`).join('');
+      s.onchange=()=>document.getElementById('hs'+i).value=o[s.value];s.dispatchEvent(new Event('change'));
     }
-    function showParams(idx, cat) {
-      const c = document.getElementById('params_' + idx);
-      c.innerHTML = '';
-      if (cat === 'grains') {
-        c.innerHTML = `<label>Moisture (%)</label><input type="number" name="products[${idx}][moisture]" min="0" max="20" step="0.1" />
-                       <label>Protein (%)</label><input type="number" name="products[${idx}][protein]" min="5" max="15" step="0.1" />`;
-        c.classList.remove('hidden');
-      } else { c.classList.add('hidden'); }
+    
+    // Certification Repeater
+    let cCount=0;
+    function addCert(){
+      const i=cCount++;
+      const c0=document.getElementById('certsContainer');
+      const b0=document.createElement('div');b0.className='block';b0.innerHTML=`<span class='remove-btn' onclick='this.parentNode.remove()'>✖</span>
+        <label>Name</label><input type='text' name='certs[${i}][name]' required />
+        <label>Authority</label><input type='text' name='certs[${i}][auth]' />
+        <label>Reg No</label><input type='text' name='certs[${i}][no]' />
+        <label>From</label><input type='date' name='certs[${i}][from]' />
+        <label>To</label><input type='date' name='certs[${i}][to]' />
+        <label>Description</label><textarea name='certs[${i}][desc]'></textarea>`;
+      c0.appendChild(b0);
     }
-    addProduct();
+    
+    // init
+    addSite();addProduct();addCert();
   </script>
 </body>
 </html>
