@@ -102,7 +102,7 @@
     <textarea id="envPolicy" name="envPolicy"></textarea>
     <label for="socialAudit">Social Audit Certifications</label>
     <input type="text" id="socialAudit" name="socialAudit" />
-    <input type="file" class="file-upload" name="productPhotos[]" multiple accept="image/*" />
+    <input type="file" class="file-upload" name="productPhotosGlobal[]" multiple accept="image/*" />
   </div>
 
   <!-- 8. References & Samples -->
@@ -131,8 +131,7 @@
     let productCount = 0;
     function addProduct() {
       const idx = productCount++;
-      const block = document.createElement('div');
-      block.className = 'product-block'; block.id = 'product_' + idx;
+      const block = document.createElement('div'); block.className = 'product-block'; block.id = 'product_' + idx;
       block.innerHTML = `
         <span class="remove-btn" onclick="removeProduct('${idx}')">✖</span>
         <label>Category</label>
@@ -151,6 +150,8 @@
         <div class="dynamic-params hidden" id="params_${idx}"></div>
         <label>Other Product Name</label>
         <input type="text" name="products[${idx}][customName]" placeholder="Optional custom name" />
+        <label>Product Photos</label>
+        <input type="file" class="file-upload" name="products[${idx}][photos][]" multiple accept="image/*" />
       `;
       document.getElementById('productsContainer').appendChild(block);
     }
