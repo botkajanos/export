@@ -12,7 +12,12 @@
     input, select, textarea { width: 100%; padding: 8px; box-sizing: border-box; }
     .inline-group { display: flex; gap: 10px; }
     .inline-group > div { flex: 1; }
+    .dynamic-params { margin-top: 10px; }
     .hidden { display: none; }
+    .product-block { border: 1px dashed #888; padding: 10px; margin-bottom: 10px; position: relative; }
+    .remove-btn { position: absolute; top: 10px; right: 10px; cursor: pointer; color: red; }
+    .add-btn { margin-bottom: 10px; }
+    .file-upload { margin-top: 5px; }
   </style>
 </head>
 <body>
@@ -23,10 +28,8 @@
     <h2>1. Company Information</h2>
     <label for="companyName">Company Name</label>
     <input type="text" id="companyName" name="companyName" required />
-
     <label for="established">Year Established</label>
     <input type="number" id="established" name="established" min="1900" max="2025" required />
-
     <label for="legalStatus">Legal Status</label>
     <select id="legalStatus" name="legalStatus">
       <option value="LLC">LLC</option>
@@ -34,69 +37,15 @@
       <option value="Public">Public</option>
       <option value="Other">Other</option>
     </select>
-
     <label for="exportManager">Export Manager Email</label>
     <input type="email" id="exportManager" name="exportManager" required />
   </div>
 
-  <!-- 2. Product Selection & Specs -->
+  <!-- 2. Product Details: repeatable -->
   <div class="form-section">
     <h2>2. Product Details</h2>
-    <label for="category">Category</label>
-    <select id="category" name="category" onchange="onCategoryChange()">
-      <option value="">Select...</option>
-      <option value="grains">Grains & Cereals</option>
-      <option value="fruits">Fresh Fruits & Vegetables</option>
-      <option value="driedFruits">Dried Fruits & Nuts</option>
-      <option value="oils">Oils & Fats</option>
-      <option value="cacao">Cacao & Coffee</option>
-      <option value="spices">Herbs & Spices</option>
-      <option value="flowers">Fresh Flowers & Ornamentals</option>
-    </select>
-
-    <!-- Dynamic parameter blocks -->
-    <div id="params_grains" class="dynamic-params hidden">
-      <label for="moisture">Moisture (%)</label>
-      <input type="number" id="moisture" name="moisture" min="0" max="20" step="0.1" />
-      <label for="protein">Protein (%)</label>
-      <input type="number" id="protein" name="protein" min="5" max="15" step="0.1" />
-    </div>
-    <div id="params_fruits" class="dynamic-params hidden">
-      <label for="brix">Brix (°)</label>
-      <input type="number" id="brix" name="brix" min="0" max="30" step="0.1" />
-      <label for="firmness">Firmness (N)</label>
-      <input type="number" id="firmness" name="firmness" />
-    </div>
-    <div id="params_driedFruits" class="dynamic-params hidden">
-      <label for="moistureDF">Moisture (%)</label>
-      <input type="number" id="moistureDF" name="moistureDF" min="0" max="15" step="0.1" />
-      <label for="sulphur">Sulphur Dioxide (mg/kg)</label>
-      <input type="number" id="sulphur" name="sulphur" />
-    </div>
-    <div id="params_oils" class="dynamic-params hidden">
-      <label for="acidity">Acidity (%)</label>
-      <input type="number" id="acidity" name="acidity" min="0" max="5" step="0.01" />
-      <label for="peroxide">Peroxide Value (meq O2/kg)</label>
-      <input type="number" id="peroxide" name="peroxide" min="0" max="20" step="0.1" />
-    </div>
-    <div id="params_cacao" class="dynamic-params hidden">
-      <label for="fatContent">Fat Content (%)</label>
-      <input type="number" id="fatContent" name="fatContent" min="40" max="60" step="0.1" />
-      <label for="ph">pH</label>
-      <input type="number" id="ph" name="ph" step="0.01" />
-    </div>
-    <div id="params_spices" class="dynamic-params hidden">
-      <label for="ash">Ash Content (%)</label>
-      <input type="number" id="ash" name="ash" min="0" max="15" step="0.1" />
-      <label for="volatileOil">Volatile Oil (%)</label>
-      <input type="number" id="volatileOil" name="volatileOil" min="0" max="10" step="0.01" />
-    </div>
-    <div id="params_flowers" class="dynamic-params hidden">
-      <label for="stemLength">Stem Length (cm)</label>
-      <input type="number" id="stemLength" name="stemLength" />
-      <label for="vaseLife">Vase Life (days)</label>
-      <input type="number" id="vaseLife" name="vaseLife" />
-    </div>
+    <button type="button" class="add-btn" onclick="addProduct()">+ Add Product</button>
+    <div id="productsContainer"></div>
   </div>
 
   <!-- 3. Packaging Options -->
@@ -118,21 +67,18 @@
     </div>
   </div>
 
-  <!-- 4. Certifications -->
+  <!-- 4. Certifications & Compliance -->
   <div class="form-section">
     <h2>4. Certifications & Compliance</h2>
-    <label for="certList">List Certifications</label>
-    <textarea id="certList" name="certList" placeholder="e.g. ISO 22000; Organic EU; Halal; Fairtrade"></textarea>
+    <input type="file" class="file-upload" name="certificates[]" multiple accept=".pdf,.jpg,.png" />
   </div>
 
-  <!-- 5. Pricing & Terms -->
+  <!-- 5. Pricing & Commercial Terms -->
   <div class="form-section">
     <h2>5. Pricing & Commercial Terms</h2>
     <label for="incoterm">Preferred Incoterm</label>
     <select id="incoterm" name="incoterm">
-      <option>FOB</option>
-      <option>CIF</option>
-      <option>EXW</option>
+      <option>FOB</option><option>CIF</option><option>EXW</option>
     </select>
     <label for="unitPrice">Unit Price (USD/EUR)</label>
     <input type="number" id="unitPrice" name="unitPrice" step="0.01" />
@@ -156,6 +102,7 @@
     <textarea id="envPolicy" name="envPolicy"></textarea>
     <label for="socialAudit">Social Audit Certifications</label>
     <input type="text" id="socialAudit" name="socialAudit" />
+    <input type="file" class="file-upload" name="productPhotos[]" multiple accept="image/*" />
   </div>
 
   <!-- 8. References & Samples -->
@@ -172,11 +119,65 @@
   <button type="submit">Submit Profile</button>
 
   <script>
-    function onCategoryChange() {
-      document.querySelectorAll('.dynamic-params').forEach(div => div.classList.add('hidden'));
-      const cat = document.getElementById('category').value;
-      if (cat) document.getElementById('params_' + cat).classList.remove('hidden');
+    const subcategories = {
+      grains: { Wheat: '1001.10', Maize: '1005.90', Rice: '1006.30', Barley: '1003.00' },
+      fruits: { Citrus: '0805.50', Berries: '0810.10', 'Leafy Greens': '0706.10', 'Root Vegetables': '0701.90' },
+      driedFruits: { Raisins: '0806.20', Figs: '0804.20', Almonds: '0802.12', Pistachios: '0802.51' },
+      oils: { 'Sunflower Oil': '1512.11', 'Olive Oil': '1509.10', 'Palm Oil': '1511.10' },
+      cacao: { 'Cocoa Beans': '1801.00', 'Cocoa Liquor': '1803.00', 'Green Coffee': '0901.11', 'Roasted Coffee': '0901.21' },
+      spices: { Pepper: '0904.11', Turmeric: '0910.10', Cinnamon: '0906.10', Cloves: '0907.10' },
+      flowers: { Roses: '0603.11', Lilies: '0603.12', Orchids: '0603.19', Tulips: '0603.13' }
+    };
+    let productCount = 0;
+    function addProduct() {
+      const idx = productCount++;
+      const block = document.createElement('div');
+      block.className = 'product-block'; block.id = 'product_' + idx;
+      block.innerHTML = `
+        <span class="remove-btn" onclick="removeProduct('${idx}')">✖</span>
+        <label>Category</label>
+        <select name="products[${idx}][category]" onchange="onProductCategoryChange(${idx})" required>
+          <option value="">Select...</option>
+          ${Object.keys(subcategories).map(c=>`<option value="${c}">${c}</option>`).join('')}
+        </select>
+        <label>Subcategory</label>
+        <select name="products[${idx}][subcategory]" id="sub_${idx}" onchange="onSubcategoryChange(${idx})" required>
+          <option value="">Select...</option>
+        </select>
+        <label>Variant (optional)</label>
+        <input type="text" name="products[${idx}][variant]" placeholder="e.g. Winter, Durum, Red" />
+        <label>HS Code</label>
+        <input type="text" name="products[${idx}][hsCode]" id="hs_${idx}" readonly />
+        <div class="dynamic-params hidden" id="params_${idx}"></div>
+        <label>Other Product Name</label>
+        <input type="text" name="products[${idx}][customName]" placeholder="Optional custom name" />
+      `;
+      document.getElementById('productsContainer').appendChild(block);
     }
+    function removeProduct(idx) { document.getElementById('product_' + idx).remove(); }
+    function onProductCategoryChange(idx) {
+      const cat = document.querySelector(`[name='products[${idx}][category]']`).value;
+      const subSel = document.getElementById('sub_' + idx);
+      subSel.innerHTML = `<option value="">Select...</option>` + Object.keys(subcategories[cat]||{}).map(s=>`<option value="${s}">${s}</option>`).join('');
+      document.getElementById('hs_' + idx).value = '';
+      document.getElementById('params_' + idx).classList.add('hidden');
+    }
+    function onSubcategoryChange(idx) {
+      const cat = document.querySelector(`[name='products[${idx}][category]']`).value;
+      const sub = document.getElementById('sub_' + idx).value;
+      document.getElementById('hs_' + idx).value = subcategories[cat][sub] || '';
+      showParams(idx, cat);
+    }
+    function showParams(idx, cat) {
+      const c = document.getElementById('params_' + idx);
+      c.innerHTML = '';
+      if (cat === 'grains') {
+        c.innerHTML = `<label>Moisture (%)</label><input type="number" name="products[${idx}][moisture]" min="0" max="20" step="0.1" />
+                       <label>Protein (%)</label><input type="number" name="products[${idx}][protein]" min="5" max="15" step="0.1" />`;
+        c.classList.remove('hidden');
+      } else { c.classList.add('hidden'); }
+    }
+    addProduct();
   </script>
 </body>
 </html>
