@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Agrifood & Feed Exporter Profile</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    .form-section { margin-bottom: 20px; border: 1px solid #ccc; padding: 15px; border-radius: 5px; }
+    .form-section h2 { font-size: 1.2em; margin-bottom: 10px; }
+    label { display: block; margin: 5px 0 2px; }
+    input, select, textarea { width: 100%; padding: 8px; box-sizing: border-box; }
+    .inline-group { display: flex; gap: 10px; }
+    .inline-group > div { flex: 1; }
+    .hidden { display: none; }
+  </style>
+</head>
+<body>
+  <h1>Exporter Profile Form</h1>
+
+  <!-- 1. Company Information -->
+  <div class="form-section">
+    <h2>1. Company Information</h2>
+    <label for="companyName">Company Name</label>
+    <input type="text" id="companyName" name="companyName" required />
+
+    <label for="established">Year Established</label>
+    <input type="number" id="established" name="established" min="1900" max="2025" required />
+
+    <label for="legalStatus">Legal Status</label>
+    <select id="legalStatus" name="legalStatus">
+      <option value="LLC">LLC</option>
+      <option value="Cooperative">Cooperative</option>
+      <option value="Public">Public</option>
+      <option value="Other">Other</option>
+    </select>
+
+    <label for="exportManager">Export Manager Email</label>
+    <input type="email" id="exportManager" name="exportManager" required />
+  </div>
+
+  <!-- 2. Product Selection & Specs -->
+  <div class="form-section">
+    <h2>2. Product Details</h2>
+    <label for="category">Category</label>
+    <select id="category" name="category" onchange="onCategoryChange()">
+      <option value="">Select...</option>
+      <option value="grains">Grains & Cereals</option>
+      <option value="fruits">Fresh Fruits & Vegetables</option>
+      <option value="driedFruits">Dried Fruits & Nuts</option>
+      <option value="oils">Oils & Fats</option>
+      <option value="cacao">Cacao & Coffee</option>
+      <option value="spices">Herbs & Spices</option>
+      <option value="flowers">Fresh Flowers & Ornamentals</option>
+    </select>
+
+    <!-- Dynamic parameter blocks -->
+    <div id="params_grains" class="dynamic-params hidden">
+      <label for="moisture">Moisture (%)</label>
+      <input type="number" id="moisture" name="moisture" min="0" max="20" step="0.1" />
+      <label for="protein">Protein (%)</label>
+      <input type="number" id="protein" name="protein" min="5" max="15" step="0.1" />
+    </div>
+    <div id="params_fruits" class="dynamic-params hidden">
+      <label for="brix">Brix (°)</label>
+      <input type="number" id="brix" name="brix" min="0" max="30" step="0.1" />
+      <label for="firmness">Firmness (N)</label>
+      <input type="number" id="firmness" name="firmness" />
+    </div>
+    <div id="params_driedFruits" class="dynamic-params hidden">
+      <label for="moistureDF">Moisture (%)</label>
+      <input type="number" id="moistureDF" name="moistureDF" min="0" max="15" step="0.1" />
+      <label for="sulphur">Sulphur Dioxide (mg/kg)</label>
+      <input type="number" id="sulphur" name="sulphur" />
+    </div>
+    <div id="params_oils" class="dynamic-params hidden">
+      <label for="acidity">Acidity (%)</label>
+      <input type="number" id="acidity" name="acidity" min="0" max="5" step="0.01" />
+      <label for="peroxide">Peroxide Value (meq O2/kg)</label>
+      <input type="number" id="peroxide" name="peroxide" min="0" max="20" step="0.1" />
+    </div>
+    <div id="params_cacao" class="dynamic-params hidden">
+      <label for="fatContent">Fat Content (%)</label>
+      <input type="number" id="fatContent" name="fatContent" min="40" max="60" step="0.1" />
+      <label for="ph">pH</label>
+      <input type="number" id="ph" name="ph" step="0.01" />
+    </div>
+    <div id="params_spices" class="dynamic-params hidden">
+      <label for="ash">Ash Content (%)</label>
+      <input type="number" id="ash" name="ash" min="0" max="15" step="0.1" />
+      <label for="volatileOil">Volatile Oil (%)</label>
+      <input type="number" id="volatileOil" name="volatileOil" min="0" max="10" step="0.01" />
+    </div>
+    <div id="params_flowers" class="dynamic-params hidden">
+      <label for="stemLength">Stem Length (cm)</label>
+      <input type="number" id="stemLength" name="stemLength" />
+      <label for="vaseLife">Vase Life (days)</label>
+      <input type="number" id="vaseLife" name="vaseLife" />
+    </div>
+  </div>
+
+  <!-- 3. Packaging Options -->
+  <div class="form-section">
+    <h2>3. Packaging Options</h2>
+    <div class="inline-group">
+      <div>
+        <label for="packageType">Format</label>
+        <select id="packageType" name="packageType">
+          <option value="bulk">Bulk</option>
+          <option value="drum">Drum</option>
+          <option value="retail">Retail</option>
+        </select>
+      </div>
+      <div>
+        <label for="unitSize">Unit Size</label>
+        <input type="text" id="unitSize" name="unitSize" placeholder="e.g. 250g, 1000kg" />
+      </div>
+    </div>
+  </div>
+
+  <!-- 4. Certifications -->
+  <div class="form-section">
+    <h2>4. Certifications & Compliance</h2>
+    <label for="certList">List Certifications</label>
+    <textarea id="certList" name="certList" placeholder="e.g. ISO 22000; Organic EU; Halal; Fairtrade"></textarea>
+  </div>
+
+  <!-- 5. Pricing & Terms -->
+  <div class="form-section">
+    <h2>5. Pricing & Commercial Terms</h2>
+    <label for="incoterm">Preferred Incoterm</label>
+    <select id="incoterm" name="incoterm">
+      <option>FOB</option>
+      <option>CIF</option>
+      <option>EXW</option>
+    </select>
+    <label for="unitPrice">Unit Price (USD/EUR)</label>
+    <input type="number" id="unitPrice" name="unitPrice" step="0.01" />
+    <label for="moq">Minimum Order Quantity</label>
+    <input type="text" id="moq" name="moq" placeholder="e.g. 10 metric tons" />
+  </div>
+
+  <!-- 6. Logistics & Export Readiness -->
+  <div class="form-section">
+    <h2>6. Logistics & Export Readiness</h2>
+    <label for="portLoading">Preferred Port of Loading</label>
+    <input type="text" id="portLoading" name="portLoading" />
+    <label for="leadTime">Typical Lead Time (days)</label>
+    <input type="number" id="leadTime" name="leadTime" />
+  </div>
+
+  <!-- 7. Sustainability & CSR -->
+  <div class="form-section">
+    <h2>7. Sustainability & CSR</h2>
+    <label for="envPolicy">Environmental Policy</label>
+    <textarea id="envPolicy" name="envPolicy"></textarea>
+    <label for="socialAudit">Social Audit Certifications</label>
+    <input type="text" id="socialAudit" name="socialAudit" />
+  </div>
+
+  <!-- 8. References & Samples -->
+  <div class="form-section">
+    <h2>8. References & Samples</h2>
+    <label for="keyClients">Key Export Clients (with contact)</label>
+    <textarea id="keyClients" name="keyClients" placeholder="Company, Contact Person, Email/Phone"></textarea>
+    <label for="sampleAvailability">Sample Availability & Cost</label>
+    <input type="text" id="sampleAvailability" name="sampleAvailability" placeholder="Free/Paid, Shipping costs" />
+    <label for="datasheetLink">Digital Datasheet Link</label>
+    <input type="url" id="datasheetLink" name="datasheetLink" placeholder="https://" />
+  </div>
+
+  <button type="submit">Submit Profile</button>
+
+  <script>
+    function onCategoryChange() {
+      document.querySelectorAll('.dynamic-params').forEach(div => div.classList.add('hidden'));
+      const cat = document.getElementById('category').value;
+      if (cat) document.getElementById('params_' + cat).classList.remove('hidden');
+    }
+  </script>
+</body>
+</html>
