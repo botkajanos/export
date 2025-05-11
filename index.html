@@ -29,8 +29,14 @@
     <label>Company Name</label><input type="text" name="companyName" required />
     <label>Tax ID</label><input type="text" name="taxId" required />
     <label>VAT ID</label><input type="text" name="vatId" required />
-    <label>Headquarters Address</label><textarea name="hqAddress" required></textarea>
-    <h3>Additional Sites</h3>
+    <label>Headquarters Address - Street</label><input type="text" name="hqStreet" required />
+    <div class="inline-group">
+      <div><label>City</label><input type="text" name="hqCity" required /></div>
+      <div><label>ZIP/Postal Code</label><input type="text" name="hqZip" required /></div>
+    </div>
+    <label>Country</label>
+    <input type="text" name="hqCountry" required />
+    <h3>Additional Sites"</h3>
     <button type="button" class="add-btn" id="addSiteBtn">+ Add Site</button>
     <div id="sitesContainer"></div>
     <div class="inline-group">
