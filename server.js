@@ -10,7 +10,8 @@ let hsTree = [];
 fs.createReadStream(path.join(__dirname, 'hscodes.csv'))
   .pipe(csv())
   .on('data', row => {
-    const { chapter, heading, code, description } = row;
+    const { chapter, heading, hscode, description } = row;
+    const code = hscode;
     let ch = hsTree.find(c => c.chapter === chapter);
     if (!ch) {
       ch = { chapter, title: '', headings: [] };
