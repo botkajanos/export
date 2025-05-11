@@ -150,28 +150,18 @@
       block.className = 'block';
       block.innerHTML = `
         <span class='remove-btn' onclick='this.parentNode.remove()'>✖</span>
-        <label>Category</label>
         <label>HS Chapter</label>
         <select id='chapter_${idx}' name='products[${idx}][hsChapter]' onchange='onChapterChange(${idx}, this.value)'><option value=''>Select chapter…</option></select>
         <label>HS Heading</label>
         <select id='heading_${idx}' name='products[${idx}][hsHeading]' onchange='onHeadingChange(${idx}, this.value)'><option value=''>Select heading…</option></select>
         <label>HS Code</label>
-        <select id='code_${idx}' name='products[${idx}][hsCode]'><option value=''>Select code…</option></select>[${idx}][category]' onchange='onCategoryChange(${idx}, this.value)'>
-          <option value=''>Select...</option>
-          ${Object.keys(subcategories).map(cat => `<option value='${cat}'>${cat}</option>`).join('')}
-        </select>
-        <label>Subcategory</label>
-        <select id='sub_${idx}' name='products[${idx}][subcategory]'><option value=''>Select...</option></select>
+        <select id='code_${idx}' name='products[${idx}][hsCode]'><option value=''>Select code…</option></select>
         <label>Variant (optional)</label>
         <input type='text' name='products[${idx}][variant]' placeholder='e.g. Winter, Durum, Red' />
-        <label>HS Code</label>
-        <input type='text' id='hs_${idx}' name='products[${idx}][hsCode]' readonly />
-        <div class='dynamic-params hidden' id='params_${idx}'></div>
         <label>Other Product Name</label>
         <input type='text' name='products[${idx}][customName]' placeholder='Optional custom name' />
         <label>Product Photos</label>
         <input type='file' name='products[${idx}][photos][]' multiple accept='image/*' />
-      `;
       container.appendChild(block);
     }
 
