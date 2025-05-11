@@ -30,10 +30,15 @@ app.get('/api/hs-codes', (req, res) => {
   res.json(hsTree);
 });
 
-// Serve static form
-app.use(express.static(path.join(__dirname, 'public')));
+// Serve static files from root (index.html at root)
+app.use(express.static(__dirname));
+
+// Fallback route to serve index.html for any other paths
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'index.html'));
+});
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
+  console.log(`Server running on port ${PORT}`);
 });
