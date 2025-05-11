@@ -33,12 +33,19 @@ app.get('/api/hs-codes', (req, res) => {
 // Serve static files from root (index.html at root)
 app.use(express.static(__dirname));
 
-// Fallback route to serve index.html for any other paths
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'index.html'));
+// Fallback route to serve index.html for non-API paths
+app.use((req, res, next) => {
+  // If the request is not for an API endpoint and not for a static file, serve index.html
+  if (!req.path.startsWith('/api/') && !req.path.includes('.')) {
+    res.sendFile(path.join(__dirname, 'index.html'));
+  } else {
+    next();
+  }
 });
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
