@@ -12,11 +12,12 @@
     input, select, textarea { width: 100%; padding: 8px; box-sizing: border-box; }
     .inline-group { display: flex; gap: 10px; }
     .inline-group > div { flex: 1; }
-    .hidden { display: none; }
     .block { border: 1px dashed #888; padding: 10px; margin-bottom: 10px; position: relative; }
     .remove-btn { position: absolute; top: 10px; right: 10px; cursor: pointer; color: red; }
     .add-btn { margin: 10px 0; }
-    .dynamic-params { margin-top: 10px; }
+    .suggestions { border: 1px solid #ccc; max-height: 150px; overflow-y: auto; background: #fff; }
+    .suggestion-item { padding: 5px; cursor: pointer; }
+    .suggestion-item:hover { background: #f0f0f0; }
   </style>
 </head>
 <body>
@@ -30,7 +31,7 @@
     <label>VAT ID</label><input type="text" name="vatId" required />
     <label>Headquarters Address</label><textarea name="hqAddress" required></textarea>
     <h3>Additional Sites</h3>
-    <button type="button" class="add-btn" onclick="addSite()">+ Add Site</button>
+    <button type="button" class="add-btn" id="addSiteBtn">+ Add Site</button>
     <div id="sitesContainer"></div>
     <div class="inline-group">
       <div><label>Phone</label><input type="tel" name="phone" required /></div>
@@ -52,7 +53,7 @@
   <!-- 2. Product Details -->
   <div class="form-section">
     <h2>2. Product Details</h2>
-    <button type="button" class="add-btn" onclick="addProduct()">+ Add Product</button>
+    <button type="button" class="add-btn" id="addProductBtn">+ Add Product</button>
     <div id="productsContainer"></div>
   </div>
 
@@ -61,14 +62,14 @@
     <h2>3. Packaging Options</h2>
     <div class="inline-group">
       <div><label>Format</label><select name="packageType"><option>Bulk</option><option>Drum</option><option>Retail</option></select></div>
-      <div><label>Unit Size</label><input type="text" name="unitSize" /></div>
+      <div><label>Unit Size</label><input type="text" name="unitSize" placeholder="e.g. 250g, 1000kg" /></div>
     </div>
   </div>
 
   <!-- 4. Certifications & Compliance -->
   <div class="form-section">
     <h2>4. Certifications & Compliance</h2>
-    <button type="button" class="add-btn" onclick="addCert()">+ Add Certification</button>
+    <button type="button" class="add-btn" id="addCertBtn">+ Add Certification</button>
     <div id="certsContainer"></div>
   </div>
 
@@ -76,158 +77,120 @@
   <div class="form-section">
     <h2>5. Pricing & Commercial Terms</h2>
     <label>Incoterm</label><select name="incoterm"><option>FOB</option><option>CIF</option><option>EXW</option></select>
-    <label>Unit Price</label><input type="number" name="unitPrice" step="0.01" />
-    <label>MOQ</label><input type="text" name="moq" />
+    <label>Unit Price (USD/EUR)</label><input type="number" name="unitPrice" step="0.01" />
+    <label>Minimum Order Quantity</label><input type="text" name="moq" placeholder="e.g. 10 metric tons" />
   </div>
 
   <!-- 6. Logistics & Export Readiness -->
   <div class="form-section">
     <h2>6. Logistics & Export Readiness</h2>
-    <label>Port of Loading</label><input type="text" name="portLoading" />
-    <label>Lead Time (days)</label><input type="number" name="leadTime" />
+    <label>Preferred Port of Loading</label><input type="text" name="portLoading" />
+    <label>Typical Lead Time (days)</label><input type="number" name="leadTime" />
   </div>
 
   <!-- 7. Sustainability & CSR -->
   <div class="form-section">
     <h2>7. Sustainability & CSR</h2>
     <label>Environmental Policy</label><textarea name="envPolicy"></textarea>
-    <label>Social Audits</label><input type="text" name="socialAudit" />
+    <label>Social Audit Certifications</label><input type="text" name="socialAudit" />
+    <label>Product Photos (global)</label><input type="file" name="productPhotosGlobal[]" multiple accept="image/*" />
   </div>
 
   <!-- 8. References & Samples -->
   <div class="form-section">
     <h2>8. References & Samples</h2>
-    <label>Key Clients</label><textarea name="keyClients"></textarea>
-    <label>Sample Availability</label><input type="text" name="sampleAvailability" />
-    <label>Datasheet Link</label><input type="url" name="datasheetLink" />
+    <label>Key Export Clients (Company, Contact, Email/Phone)</label><textarea name="keyClients"></textarea>
+    <label>Sample Availability & Cost</label><input type="text" name="sampleAvailability" />
+    <label>Digital Datasheet Link</label><input type="url" name="datasheetLink" placeholder="https://" />
   </div>
 
   <button type="submit">Submit Profile</button>
 
   <script>
-    // Load HS code tree from back-end
-    let hsTree = [];
-    fetch('/api/hs-codes')
-      .then(r => r.json())
-      .then(tree => {
-        hsTree = tree;
-        // Populate existing product blocks
-        for (let i = 0; i < productCount; i++) populateChapter(i);
+    document.addEventListener('DOMContentLoaded', () => {
+      // Load HS codes
+      let hsList = [];
+      fetch('/api/hs-codes')
+        .then(res => res.json())
+        .then(tree => hsList = tree.flatMap(ch => ch.headings.flatMap(hd => hd.codes.map(c => ({ code: c.code, desc: c.desc })))));
+
+      // Site Repeater
+      let siteCount = 0;
+      const sitesContainer = document.getElementById('sitesContainer');
+      document.getElementById('addSiteBtn').addEventListener('click', () => {
+        const idx = siteCount++;
+        const block = document.createElement('div'); block.className = 'block';
+        block.innerHTML = `
+          <span class='remove-btn' onclick='this.parentNode.remove()'>✖</span>
+          <label>Site Type</label><input type='text' name='sites[${idx}][type]' required />
+          <label>Site Address</label><textarea name='sites[${idx}][address]' required></textarea>
+        `;
+        sitesContainer.appendChild(block);
       });
 
-    // Populate chapter select for a given product index
-    function populateChapter(idx) {
-      const sel = document.getElementById(`chapter_${idx}`);
-      if (!sel) return;
-      sel.innerHTML = '<option value="">Select chapter…</option>' +
-        hsTree.map(ch => `<option value="${ch.chapter}">Ch ${ch.chapter}: ${ch.title}</option>`).join('');
-    }
-
-    // Existing script continues...
-    
-
-    // Site Repeater
-    let siteCount = 0;
-    function addSite() {
-      const idx = siteCount++;
-      const container = document.getElementById('sitesContainer');
-      const block = document.createElement('div');
-      block.className = 'block';
-      block.innerHTML = `
-        <span class='remove-btn' onclick='this.parentNode.remove()'>✖</span>
-        <label>Site Type</label><input type='text' name='sites[${idx}][type]' required />
-        <label>Address</label><textarea name='sites[${idx}][address]' required></textarea>
-      `;
-      container.appendChild(block);
-    }
-
-    // Product Repeater
-    let productCount = 0;
-    function addProduct() {
-      const idx = productCount++;
-      const container = document.getElementById('productsContainer');
-      const block = document.createElement('div');
-      block.className = 'block';
-      block.innerHTML = `
-        <span class='remove-btn' onclick='this.parentNode.remove()'>✖</span>
-        <label>HS Chapter</label>
-        <select id='chapter_${idx}' name='products[${idx}][hsChapter]' onchange='onChapterChange(${idx}, this.value)'><option value=''>Select chapter…</option></select>
-        <label>HS Heading</label>
-        <select id='heading_${idx}' name='products[${idx}][hsHeading]' onchange='onHeadingChange(${idx}, this.value)'><option value=''>Select heading…</option></select>
-        <label>HS Code</label>
-        <select id='code_${idx}' name='products[${idx}][hsCode]'><option value=''>Select code…</option></select>
-        <label>Variant (optional)</label>
-        <input type='text' name='products[${idx}][variant]' placeholder='e.g. Winter, Durum, Red' />
-        <label>Other Product Name</label>
-        <input type='text' name='products[${idx}][customName]' placeholder='Optional custom name' />
-        <label>Product Photos</label>
-        <input type='file' name='products[${idx}][photos][]' multiple accept='image/*' />
-      container.appendChild(block);
-    }
-
-    function onCategoryChange(idx, category) {
-      const subSel = document.getElementById(`sub_${idx}`);
-      subSel.innerHTML = `<option value=''>Select...</option>` +
-        Object.keys(subcategories[category] || {}).map(s => `<option value='${s}'>${s}</option>`).join('');
-      document.getElementById(`hs_${idx}`).value = '';
-      document.getElementById(`params_${idx}`).classList.add('hidden');
-    }
-
-    function onSubcategoryChange(idx) {
-      const category = document.querySelector(`[name='products[${idx}][category]']`).value;
-      const sub = document.getElementById(`sub_${idx}`).value;
-      document.getElementById(`hs_${idx}`).value = subcategories[category][sub] || '';
-      showParams(idx, category);
-    }
-
-    function showParams(idx, category) {
-      const container = document.getElementById(`params_${idx}`);
-      container.innerHTML = '';
-      if (category === 'grains') {
-        container.innerHTML = `
-          <label>Moisture (%)</label><input type='number' name='products[${idx}][moisture]' min='0' max='20' step='0.1' />
-          <label>Protein (%)</label><input type='number' name='products[${idx}][protein]' min='5' max='15' step='0.1' />
+      // Product Repeater
+      let productCount = 0;
+      const productsContainer = document.getElementById('productsContainer');
+      const addProductBtn = document.getElementById('addProductBtn');
+      addProductBtn.addEventListener('click', addProduct);
+      function addProduct() {
+        const idx = productCount++;
+        const block = document.createElement('div'); block.className = 'block';
+        block.innerHTML = `
+          <span class='remove-btn' onclick='this.parentNode.remove()'>✖</span>
+          <label>Product Name</label>
+          <input type='text' id='productName_${idx}' name='products[${idx}][productName]' placeholder='Type product name' autocomplete='off' />
+          <div id='suggestions_${idx}' class='suggestions'></div>
+          <label>Variant (optional)</label><input type='text' name='products[${idx}][variant]' placeholder='e.g. Winter, Durum, Red' />
+          <label>Sample Availability & Cost</label><input type='text' name='products[${idx}][sampleInfo]' placeholder='Free/Paid, shipping cost' />
+          <label>Product Photos</label><input type='file' name='products[${idx}][photos][]' multiple accept='image/*' />
         `;
-      } else if (category === 'fruits') {
-        container.innerHTML = `
-          <label>Brix (°)</label><input type='number' name='products[${idx}][brix]' min='0' max='30' step='0.1' />
-          <label>Firmness (N)</label><input type='number' name='products[${idx}][firmness]' />
+        productsContainer.appendChild(block);
+        const input = document.getElementById(`productName_${idx}`);
+        input.addEventListener('input', () => onProductInput(idx, input.value));
+      }
+
+      function onProductInput(idx, query) {
+        const list = document.getElementById(`suggestions_${idx}`);
+        list.innerHTML = '';
+        if (!query) return;
+        const lower = query.toLowerCase();
+        const matches = hsList.filter(item => item.desc.toLowerCase().includes(lower)).slice(0, 10);
+        matches.forEach(item => {
+          const div = document.createElement('div'); div.className = 'suggestion-item';
+          div.textContent = `${item.code} – ${item.desc}`;
+          div.addEventListener('click', () => selectSuggestion(idx, item));
+          list.appendChild(div);
+        });
+      }
+
+      function selectSuggestion(idx, item) {
+        const input = document.getElementById(`productName_${idx}`);
+        input.value = `${item.code} – ${item.desc}`;
+        document.getElementById(`suggestions_${idx}`).innerHTML = '';
+      }
+
+      // Certification Repeater
+      let certCount = 0;
+      const certsContainer = document.getElementById('certsContainer');
+      document.getElementById('addCertBtn').addEventListener('click', () => {
+        const idx = certCount++;
+        const block = document.createElement('div'); block.className = 'block';
+        block.innerHTML = `
+          <span class='remove-btn' onclick='this.parentNode.remove()'>✖</span>
+          <label>Certification Name</label><input type='text' name='certs[${idx}][name]' required />
+          <label>Issuing Authority</label><input type='text' name='certs[${idx}][authority]' required />
+          <label>Registration Number</label><input type='text' name='certs[${idx}][regNo]' />
+          <label>Valid From</label><input type='date' name='certs[${idx}][from]' />
+          <label>Valid To</label><input type='date' name='certs[${idx}][to]' />
+          <label>Description</label><textarea name='certs[${idx}][description]'></textarea>
         `;
-      }
-      // add other categories similarly...
-      container.classList.remove('hidden');
-    }
+        certsContainer.appendChild(block);
+      });
 
-    // Certification Repeater
-    let certCount = 0;
-    function addCert() {
-      const idx = certCount++;
-      const container = document.getElementById('certsContainer');
-      const block = document.createElement('div');
-      block.className = 'block';
-      block.innerHTML = `
-        <span class='remove-btn' onclick='this.parentNode.remove()'>✖</span>
-        <label>Certification Name</label><input type='text' name='certs[${idx}][name]' required />
-        <label>Issuing Authority</label><input type='text' name='certs[${idx}][authority]' required />
-        <label>Registration Number</label><input type='text' name='certs[${idx}][regNo]' />
-        <label>Valid From</label><input type='date' name='certs[${idx}][from]' />
-        <label>Valid To</label><input type='date' name='certs[${idx}][to]' />
-        <label>Description</label><textarea name='certs[${idx}][description]'></textarea>
-      `;
-      container.appendChild(block);
-    }
-
-    // Initialize
-    addSite();
-    addProduct();
-    addCert();
-
-    // Listen for subcategory change events dynamically
-    document.addEventListener('change', e => {
-      if (e.target && e.target.id.startsWith('sub_')) {
-        const idx = e.target.id.split('_')[1];
-        onSubcategoryChange(idx);
-      }
+      // Initialize
+      addProduct();
+      document.getElementById('addCertBtn').click();
     });
   </script>
 </body>
