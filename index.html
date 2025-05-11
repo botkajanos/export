@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Agrifood & Feed Exporter Profile</title>
+  <title>Exporter Profile</title>
   <style>
     body { font-family: Arial, sans-serif; margin: 20px; }
     .form-section { margin-bottom: 20px; border: 1px solid #ccc; padding: 15px; border-radius: 5px; }
@@ -105,6 +105,25 @@
   <button type="submit">Submit Profile</button>
 
   <script>
+    // Load HS code tree from back-end
+    let hsTree = [];
+    fetch('/api/hs-codes')
+      .then(r => r.json())
+      .then(tree => {
+        hsTree = tree;
+        // Populate existing product blocks
+        for (let i = 0; i < productCount; i++) populateChapter(i);
+      });
+
+    // Populate chapter select for a given product index
+    function populateChapter(idx) {
+      const sel = document.getElementById(`chapter_${idx}`);
+      if (!sel) return;
+      sel.innerHTML = '<option value="">Select chapter…</option>' +
+        hsTree.map(ch => `<option value="${ch.chapter}">Ch ${ch.chapter}: ${ch.title}</option>`).join('');
+    }
+
+    // Existing script continues...
     // Data definitions
     const subcategories = {
       grains: { Wheat: '1001.10', Maize: '1005.90', Rice: '1006.30', Barley: '1003.00' },
@@ -141,7 +160,12 @@
       block.innerHTML = `
         <span class='remove-btn' onclick='this.parentNode.remove()'>✖</span>
         <label>Category</label>
-        <select name='products[${idx}][category]' onchange='onCategoryChange(${idx}, this.value)'>
+        <label>HS Chapter</label>
+        <select id='chapter_${idx}' name='products[${idx}][hsChapter]' onchange='onChapterChange(${idx}, this.value)'><option value=''>Select chapter…</option></select>
+        <label>HS Heading</label>
+        <select id='heading_${idx}' name='products[${idx}][hsHeading]' onchange='onHeadingChange(${idx}, this.value)'><option value=''>Select heading…</option></select>
+        <label>HS Code</label>
+        <select id='code_${idx}' name='products[${idx}][hsCode]'><option value=''>Select code…</option></select>[${idx}][category]' onchange='onCategoryChange(${idx}, this.value)'>
           <option value=''>Select...</option>
           ${Object.keys(subcategories).map(cat => `<option value='${cat}'>${cat}</option>`).join('')}
         </select>
