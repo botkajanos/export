@@ -9,7 +9,6 @@ const knex      = Knex(knexfile[ENV]);             // ← add here
 const multer = require('multer');
 const upload = multer({ dest: 'uploads/' });
 const profilesRoute = require('./routes/profiles');
-const path = require('path');
 app.use(express.static(path.join(__dirname, 'export')));
 const app = express();
 app.use('/profiles', profilesRoute);
