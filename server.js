@@ -83,10 +83,11 @@ app.get('/debug-data', async (req, res) => {
     const products = await knex('products').select('*');
     res.json({ companies, products });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'DB read error' });
+    console.error('[DEBUG ERROR]', err); // 👈 this will show full error in logs
+    res.status(500).json({ error: err.message }); // 👈 send the real message
   }
 });
+
 
 app.post('/submit-profile', upload.array('photos', 5), async (req, res) => {
   const files = req.files; // [{ filename, originalname, path, ... }]
