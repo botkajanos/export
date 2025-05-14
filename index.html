@@ -21,7 +21,8 @@
   </style>
 </head>
 <body>
-  <h1>Exporter Profile Form</h1>
+  <h1>Exporter Registration Form</h1>
+  <form id="profileForm" onsubmit="submitProfile(event)"></form>
 
   <!-- 1. Company Information -->
   <div class="form-section">
@@ -111,6 +112,7 @@
   </div>
 
   <button type="submit">Submit Profile</button>
+  </form>
 
   <script>
     document.addEventListener('DOMContentLoaded', () => {
