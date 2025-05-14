@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Exporter Search</title>
+  <style>
+    body { font-family: sans-serif; padding: 20px; }
+    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+    th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+    th { background-color: #f4f4f4; }
+    input, button { margin: 5px; padding: 5px; }
+  </style>
+</head>
+<body>
+  <h1>Search Exporters</h1>
+
+  <form id="searchForm">
+    <input type="text" id="country" placeholder="Country">
+    <input type="text" id="product" placeholder="Product">
+    <input type="text" id="cert" placeholder="Certification">
+    <button type="submit">Search</button>
+  </form>
+
+  <table id="resultsTable" style="display:none;">
+    <thead>
+      <tr>
+        <th>Company</th>
+        <th>Country</th>
+        <th>Product</th>
+        <th>Certifications</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <script>
+    const form = document.getElementById('searchForm');
+    const table = document.getElementById('resultsTable');
+    const tbody = table.querySelector('tbody');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const country = document.getElementById('country').value;
+      const product = document.getElementById('product').value;
+      const cert = document.getElementById('cert').value;
+
+      const params = new URLSearchParams();
+      if (country) params.append('country', country);
+      if (product) params.append('product', product);
+      if (cert) params.append('cert', cert);
+
+      const response = await fetch(`/profiles?${params.toString()}`);
+      const data = await response.json();
+
+      tbody.innerHTML = '';
+      data.forEach(entry => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>${entry.name}</td>
+          <td>${entry.country}</td>
+          <td>${entry.product}</td>
+          <td>${entry.certifications}</td>
+        `;
+        tbody.appendChild(row);
+      });
+
+      table.style.display = data.length ? 'table' : 'none';
+    });
+  </script>
+</body>
+</html>

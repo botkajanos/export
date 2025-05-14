@@ -2,12 +2,18 @@ const express = require('express');
 const csv = require('csv-parser');
 const fs = require('fs');
 const path = require('path');
-
 const Knex      = require('knex');                 // ← add here
 const knexfile  = require('./knexfile.js');        // ← add here
 const ENV       = process.env.NODE_ENV || 'development'; // ← add here
 const knex      = Knex(knexfile[ENV]);             // ← add here
+const multer = require('multer');
+const upload = multer({ dest: 'uploads/' });
+const profilesRoute = require('./routes/profiles');
+const path = require('path');
+app.use(express.static(path.join(__dirname, 'export')));
 const app = express();
+app.use('/profiles', profilesRoute);
+
 let hsTree = [];
 
 // Load HS codes on startup
@@ -70,6 +76,10 @@ app.get('/profiles', async (req, res) => {
     console.error(err);
     res.status(500).json({ error: err.message });
   }
+});
+app.post('/submit-profile', upload.array('photos', 5), async (req, res) => {
+  const files = req.files; // [{ filename, originalname, path, ... }]
+  // store filenames in an attachments table
 });
 
 // Fallback route to serve index.html for non-API paths

@@ -1,0 +1,34 @@
+const express = require('express');
+const router = express.Router();
+// const knex = require('../Knex'); ❌ wrong
+const knex = require('../db');    // ✅ correct
+
+router.get('/', async (req, res) => {
+  const { country, product, cert, page = 1, limit = 20 } = req.query;
+  const offset = (page - 1) * limit;
+
+  try {
+    const query = knex('companies')
+      .join('products', 'companies.id', '=', 'products.company_id')
+      .select(
+        'companies.id',
+        'companies.name',
+        'companies.hq_country',
+        'products.name as product',
+        'products.certifications'
+      );
+
+    if (country) query.whereILike('companies.hq_country', `%${country}%`);
+    if (product) query.whereILike('products.name', `%${product}%`);
+    if (cert) query.whereILike('products.certifications', `%${cert}%`);
+
+    const results = await query.limit(limit).offset(offset);
+
+    res.json(results);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Something went wrong.' });
+  }
+});
+
+module.exports = router;
