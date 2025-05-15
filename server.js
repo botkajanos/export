@@ -11,7 +11,7 @@ const upload = multer({ dest: 'uploads/' });
 const profilesRoute = require('./routes/profiles');
 const app = express();
 app.use(express.static(path.join(__dirname, 'export')));
-
+app.use(express.json());
 app.use('/profiles', profilesRoute);
 
 let hsTree = [];
