@@ -115,65 +115,45 @@
   </form>
 <script>
 async function submitProfile(e) {
-  e.preventDefault();               // stop page refresh
+  e.preventDefault();
 
-  /* 1️⃣  Gather fixed fields */
   const data = {
-    companyName : document.querySelector('[name="companyName"]').value,
-    hqStreet    : document.querySelector('[name="hqStreet"]').value,
-    hqCity      : document.querySelector('[name="hqCity"]').value,
-    hqZip       : document.querySelector('[name="hqZip"]').value,
-    hqCountry   : document.querySelector('[name="hqCountry"]').value,
-    /* add the rest of your simple inputs here… */
-    products : [],
-    sites    : [],
-    certs    : []
+    companyName: document.querySelector('[name="companyName"]').value,
+    hqCountry: document.querySelector('[name="hqCountry"]').value,
+    products: []
   };
 
-  /* 2️⃣  Gather repeater blocks */
+  // Collect product blocks
   document.querySelectorAll('#productsContainer .block').forEach(b => {
     data.products.push({
-      productName : b.querySelector('[name$="[productName]"]').value,
-      variant     : b.querySelector('[name$="[variant]"]').value,
-      sampleInfo  : b.querySelector('[name$="[sampleInfo]"]').value
-    });
-  });
-  document.querySelectorAll('#sitesContainer .block').forEach(b => {
-    data.sites.push({
-      type    : b.querySelector('[name$="[type]"]').value,
-      address : b.querySelector('[name$="[address]"]').value
-    });
-  });
-  document.querySelectorAll('#certsContainer .block').forEach(b => {
-    data.certs.push({
-      name        : b.querySelector('[name$="[name]"]').value,
-      authority   : b.querySelector('[name$="[authority]"]').value,
-      regNo       : b.querySelector('[name$="[regNo]"]').value,
-      from        : b.querySelector('[name$="[from]"]').value,
-      to          : b.querySelector('[name$="[to]"]').value,
-      description : b.querySelector('[name$="[description]"]').value
+      productName: b.querySelector('[name$="[productName]"]').value,
+      certifications: "" // fill from UI if available
     });
   });
 
-  /* 3️⃣  POST to the server */
   try {
     const r = await fetch('/submit-profile', {
-      method  : 'POST',
-      headers : { 'Content-Type': 'application/json' },
-      body    : JSON.stringify(data)
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
     });
+
     const json = await r.json();
     if (r.ok) {
-      alert('Profile saved! Company ID = ' + json.companyId);
-      e.target.reset();          // crude reset; improve later
+      alert('✅ Profile saved! Company ID = ' + json.companyId);
+      e.target.reset();
     } else {
-      alert('Server validation error: ' + JSON.stringify(json));
+      console.error('Server validation error:', json);
+      alert('❌ Server error: ' + JSON.stringify(json));
     }
+
   } catch (err) {
-    alert('Network or server error: ' + err.message);
+    console.error('Submit error:', err);
+    alert('❌ Network/server error: ' + JSON.stringify(err));
   }
 }
 </script>
+
 
   <script>
     document.addEventListener('DOMContentLoaded', () => {
