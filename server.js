@@ -12,7 +12,7 @@ const profilesRoute = require('./routes/profiles');
 
 const app = express();
 app.use(express.json());
-app.use(express.static(path.join(__dirname, 'export')));
+app.use(express.static(__dirname));
 app.use('/profiles', profilesRoute);
 
 let hsTree = [];
