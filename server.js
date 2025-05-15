@@ -2,21 +2,22 @@ const express = require('express');
 const csv = require('csv-parser');
 const fs = require('fs');
 const path = require('path');
-const Knex      = require('knex');                 // ← add here
-const knexfile  = require('./knexfile.js');        // ← add here
-const ENV       = process.env.NODE_ENV || 'development'; // ← add here
-const knex      = Knex(knexfile[ENV]);             // ← add here
+const Knex = require('knex');
+const knexfile = require('./knexfile.js');
+const ENV = process.env.NODE_ENV || 'development';
+const knex = Knex(knexfile[ENV]);
 const multer = require('multer');
 const upload = multer({ dest: 'uploads/' });
 const profilesRoute = require('./routes/profiles');
+
 const app = express();
-app.use(express.static(path.join(__dirname, 'export')));
 app.use(express.json());
+app.use(express.static(path.join(__dirname, 'export')));
 app.use('/profiles', profilesRoute);
 
 let hsTree = [];
 
-// Load HS codes on startup
+// Load HS codes
 fs.createReadStream(path.join(__dirname, 'hscodes.csv'))
   .pipe(csv())
   .on('data', row => {
@@ -36,17 +37,15 @@ fs.createReadStream(path.join(__dirname, 'hscodes.csv'))
   })
   .on('end', () => console.log('HS codes loaded'));
 
-// Serve HS codes
 app.get('/api/hs-codes', (req, res) => {
   res.json(hsTree);
 });
 
-// Serve static files from root (index.html at root)
-app.use(express.static(__dirname));
-
+// ✅ Submit profile (JSON only for now)
 app.post('/submit-profile', async (req, res) => {
   try {
     const { name, hq_country, products } = req.body;
+    console.log('[submit-profile] BODY:', req.body);
 
     const [companyId] = await knex('companies')
       .insert({ name, hq_country })
@@ -59,7 +58,6 @@ app.post('/submit-profile', async (req, res) => {
         certifications: p.certifications || ''
       });
     }
-    console.log('[submit-profile] BODY:', req.body);
 
     res.json({ success: true, companyId });
   } catch (err) {
@@ -68,14 +66,9 @@ app.post('/submit-profile', async (req, res) => {
   }
 });
 
-// /profiles?country=HU&product=grapes&page=1&limit=25
+// ✅ Profiles query
 app.get('/profiles', async (req, res) => {
-  const {
-    country,
-    product,
-    page = 1,
-    limit = 25
-  } = req.query;
+  const { country, product, page = 1, limit = 25 } = req.query;
   const offset = (page - 1) * limit;
 
   try {
@@ -84,43 +77,46 @@ app.get('/profiles', async (req, res) => {
       .select(
         'c.id',
         'c.name',
-        'c.hq_country',
-        knex.raw('json_agg(DISTINCT p.product_name) as products')
+        'c.hq_country as country',
+        knex.raw('json_agg(DISTINCT p.name) as products') // 🔧 fixed column
       )
       .groupBy('c.id')
       .limit(limit)
       .offset(offset);
 
     if (country) query.whereILike('c.hq_country', `%${country}%`);
-    if (product) query.whereILike('p.product_name', `%${product}%`);
+    if (product) query.whereILike('p.name', `%${product}%`); // 🔧 fixed column
 
     const rows = await query;
     res.json(rows);
   } catch (err) {
-    console.error(err);
+    console.error('[profiles error]', err);
     res.status(500).json({ error: err.message });
   }
 });
+
+// Debug route
 app.get('/debug-data', async (req, res) => {
   try {
     const companies = await knex('companies').select('*');
     const products = await knex('products').select('*');
     res.json({ companies, products });
   } catch (err) {
-    console.error('[DEBUG ERROR]', err); // 👈 this will show full error in logs
-    res.status(500).json({ error: err.message }); // 👈 send the real message
+    console.error('[DEBUG ERROR]', err);
+    res.status(500).json({ error: err.message });
   }
 });
 
-
-app.post('/submit-profile', upload.array('photos', 5), async (req, res) => {
-  const files = req.files; // [{ filename, originalname, path, ... }]
-  // store filenames in an attachments table
+// ⚠️ File upload route — TODO: implement this later
+// Keep this but rename it
+app.post('/upload-files', upload.array('photos', 5), async (req, res) => {
+  const files = req.files;
+  console.log('[upload-files]', files);
+  res.json({ uploaded: files.length });
 });
 
-// Fallback route to serve index.html for non-API paths
+// Fallback to index.html
 app.use((req, res, next) => {
-  // If the request is not for an API endpoint and not for a static file, serve index.html
   if (!req.path.startsWith('/api/') && !req.path.includes('.')) {
     res.sendFile(path.join(__dirname, 'index.html'));
   } else {
@@ -130,7 +126,5 @@ app.use((req, res, next) => {
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
