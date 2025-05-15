@@ -54,10 +54,11 @@ app.post('/submit-profile', async (req, res) => {
     for (const p of products) {
       await knex('products').insert({
         company_id: companyId.id || companyId,
-        name: p.name,
+        name: p.productName,
         certifications: p.certifications || ''
       });
-    }
+    }console.log('Inserting product:', p.productName);
+
 
     res.json({ success: true, companyId });
   } catch (err) {
