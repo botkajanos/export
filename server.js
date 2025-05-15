@@ -13,7 +13,17 @@ const app = express();
 app.use(express.static(path.join(__dirname, 'export')));
 
 app.use('/profiles', profilesRoute);
+const knex = require('./db'); // adjust if needed
 
+app.get('/migrate', async (req, res) => {
+  try {
+    await knex.migrate.latest();
+    res.send('✅ Migration complete');
+  } catch (err) {
+    console.error('[MIGRATION ERROR]', err);
+    res.status(500).send(err.message);
+  }
+});
 let hsTree = [];
 
 // Load HS codes on startup
