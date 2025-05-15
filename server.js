@@ -13,7 +13,6 @@ const app = express();
 app.use(express.static(path.join(__dirname, 'export')));
 
 app.use('/profiles', profilesRoute);
-const knex = require('./db'); // adjust if needed
 
 app.get('/migrate', async (req, res) => {
   try {
