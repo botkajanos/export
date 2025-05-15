@@ -44,6 +44,30 @@ app.get('/api/hs-codes', (req, res) => {
 // Serve static files from root (index.html at root)
 app.use(express.static(__dirname));
 
+app.post('/submit-profile', async (req, res) => {
+  try {
+    const { name, hq_country, products } = req.body;
+
+    const [companyId] = await knex('companies')
+      .insert({ name, hq_country })
+      .returning('id');
+
+    for (const p of products) {
+      await knex('products').insert({
+        company_id: companyId.id || companyId,
+        name: p.name,
+        certifications: p.certifications || ''
+      });
+    }
+    console.log('[submit-profile] BODY:', req.body);
+
+    res.json({ success: true, companyId });
+  } catch (err) {
+    console.error('[submit-profile error]', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // /profiles?country=HU&product=grapes&page=1&limit=25
 app.get('/profiles', async (req, res) => {
   const {
